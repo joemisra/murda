@@ -19,6 +19,8 @@ local counter = {} -- meta-table to hold counters to distinguish between long an
 
 local scope = {0,0}
 
+local curr_selected = {1, 1, 1, 1}
+
 --local crowii  = crow.ii.crow
 local P = norns.crow.public
 
@@ -43,19 +45,19 @@ function init()
   end
 
   for y = 1,4 do
-    toggled[1][y] = true
-    brightness[1][y] = 15
+    toggled[curr_selected[y]][y] = true
+    brightness[curr_selected[y]][y] = 15
   end
 
   metro[1].event = update_grid
-  metro[1].time  = 0.1
-  metro[1]:start() 
+  metro[1].time  = 0.01
 
   function P.change() redraw() end
 
   function P.discovered()
     print'discovered!'
     if viewall then crow.public.view.all() end -- enable viewing of all CV levels
+    metro[1]:start() 
     redraw()
   end
 
@@ -64,20 +66,36 @@ function init()
 end
 
 function update_grid()
+    offset = 0
+
     for i=1,4 do
-        level_is = math.floor((P.viewing.output[i] / 5) * 16)
-        if(level_is < 0) then
-            y = 8
-            level_is = level_is * -1
-            toggled[i][7] = false
-        else
-            y = 7
-            toggled[i][8] = false
+        if P.viewing.output[i] ~= nil then
+            level_is = math.floor((P.viewing.output[i] / 5) * 16)
+            offset = math.floor((P.viewing.output[i] / 5) * 4)
+
+            if(level_is < 0) then
+                y = 8
+                level_is = level_is * -1
+                toggled[i][7] = false
+                offset = 8 + (offset * -1)
+            elseif level_is > 0 then
+                y = 7
+                toggled[i][8] = false
+            elseif level_is == 0 then
+                toggled[i][8] = false
+                toggled[i][7] = false
+            end
         end
 
-        g:led(i, y, level_is)
+        if level_is ~= nil then
+            g:led(i, y, level_is)
+        end
+
         toggled[i][y] = true
         brightness[i][y] = level_is -- flip brightness 8->15 or 15->8.
+
+        -- flickering effect on selected pads
+        -- brightness[curr_selected[i]][i] = 10 + offset
     end
 
     grid_dirty = true
@@ -110,11 +128,9 @@ function short_press(x,y) -- define a short press
         end
 
         toggled[x][y] = true -- toggle it on,
-        brightness[x][y] = 8 -- set brightness to half.
+        brightness[x][y] = 13 -- set brightness to half.
+        curr_selected[y] = x
 
-        --cmd = 'public.update("index' .. y .. '",' .. x .. ')'
-        --print(cmd)
-        --norns.crow.send(cmd)
         crow.send('update_output(' .. x .. ',' .. y .. ')')
     end
 

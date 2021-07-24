@@ -13,28 +13,29 @@ public{index2 = 2}:range(0, 16)  -- asl index 2
 public{index3 = 3}:range(0, 16)  -- asl index 3
 public{index4 = 4}:range(0, 16)  -- asl index 4
 
--- TODO refine ranges & apply 'expo' where appropriate
 public{dyn1 = 0.75}:range(0, 1) -- dyn1
 public{dyn2 = 0.5}:range(0, 1)  -- dyn2
+
+-- do we maybe want to have this list on the norns side?
 
 caw = { 
   loop{ to( 5, 0.1 ), to(-5,0.01) },
   loop{ to( 5, 0.05 ), to(-5,0.2)  },
   loop{ to( 5, 0.02 ), to(-5,0.4)  },
-  loop{ to( 5, 0.02 ), to(-5,0.8)  },
-  loop{ to( 5, 0.02 ), to(-5,1)  },
+  loop{ to( 5, 0.02 ), to(-5,0.1), to( 5, 0.02 ), to(-5,0.2), to( 5, 0.02 ), to(-5,0.3)  },
+  loop{ to( 5, 0.02 ), to(-5,0.4), to( 5, 0.22 ), to(-5,0.5), to( 5, 0.76 ), to(-5,1)  },
   loop{ to( -5, 0.05 ), to(5,0.2)  },
   loop{ to( -5, 0.02 ), to(5,0.4)  },
   loop{ to( -5, 0.02 ), to(5,0.6)  },
   loop{ to( -5, 0.02 ), to(5,0.8)  },
-  lfo(0.5),
-  lfo(0.25),
-  lfo(0.1),
-  lfo(0.05),
-  lfo(0.025),
-  lfo(0.01),
-  lfo(0.005),
-  lfo(0.001),
+  lfo(1.5*dyn{dyn1=1}),
+  lfo(1.25),
+  lfo(1.1),
+  lfo(1.05),
+  lfo(1.025),
+  lfo(1.01),
+  lfo(1.005),
+  lfo(1.001),
 }
 
 cache = { 0, public.index1, public.index2, public.index3, public.index4 }
