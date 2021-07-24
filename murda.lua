@@ -28,6 +28,11 @@ local P = norns.crow.public
 
 local g = grid.connect()
 
+local dyncache = {
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, -- dyn1
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, -- dyn2
+}
+
 function init()
   norns.crow.loadscript("asl.lua")
 
@@ -50,7 +55,7 @@ function init()
   end
 
   metro[1].event = update_grid
-  metro[1].time  = 0.01
+  metro[1].time  = 0.05
 
   function P.change() redraw() end
 
@@ -70,29 +75,30 @@ function update_grid()
 
     for i=1,4 do
         if P.viewing.output[i] ~= nil then
-            level_is = math.floor((P.viewing.output[i] / 5) * 16)
+            level_is = math.floor((P.viewing.output[i] / 10) * 16)
             offset = math.floor((P.viewing.output[i] / 5) * 4)
 
             if(level_is < 0) then
                 y = 8
                 level_is = level_is * -1
                 toggled[i][7] = false
+                toggled[i][8] = true
                 offset = 8 + (offset * -1)
             elseif level_is > 0 then
                 y = 7
+                toggled[i][7] = true
                 toggled[i][8] = false
             elseif level_is == 0 then
+                y = 0
                 toggled[i][8] = false
                 toggled[i][7] = false
             end
-        end
 
-        if level_is ~= nil then
-            g:led(i, y, level_is)
+            if y >= 0 and level_is ~= nil then
+                brightness[i][y] = level_is -- flip brightness 8->15 or 15->8.
+                g:led(i, y, level_is)
+            end
         end
-
-        toggled[i][y] = true
-        brightness[i][y] = level_is -- flip brightness 8->15 or 15->8.
 
         -- flickering effect on selected pads
         -- brightness[curr_selected[i]][i] = 10 + offset
@@ -129,14 +135,30 @@ function short_press(x,y) -- define a short press
 
         toggled[x][y] = true -- toggle it on,
         brightness[x][y] = 13 -- set brightness to half.
+        prev_selected = curr_selected[y]
         curr_selected[y] = x
 
         crow.send('update_output(' .. x .. ',' .. y .. ')')
+
+        set_dyn(y, 1, dyncache[1][y])
+        set_dyn(y, 2, dyncache[2][y])
     end
 
     -- i dunno who this is 626 696 9226
 
     grid_dirty = true -- flag for redraw
+end
+
+function set_dyn(i, d, v)
+    x = curr_selected[i]
+
+    dyncache[d][i] = v
+
+    if d == 1 then
+        crow.output[i].dyn.dyn1 = dyncache[1][i]
+    elseif d == 2 then
+        crow.output[i].dyn.dyn2 = dyncache[2][i]
+    end
 end
 
 function long_press(x,y) -- define a long press
@@ -154,7 +176,7 @@ function grid_redraw()
   for x = 1,16 do
     for y = 1,8 do
       if toggled[x][y] then -- if coordinate is toggled on...
-        g:led(x,y,brightness[x][y]) -- set LED to coordinate at specified brightness.
+          g:led(x,y,brightness[x][y]) -- set LED to coordinate at specified brightness.
       end
     end
   end
