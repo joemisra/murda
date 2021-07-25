@@ -2,10 +2,19 @@
 -- 
 -- proswell
 --
--- asl banks for crow
+-- asl banks 4 crow
+-- grid required
 --
--- lfo / envelope
+-- row 1-4
+--   select asl 1-16
 --
+-- row 8
+--   7  = shuffle
+--   8  = sync
+--   9  = all--
+--   10 = all++
+--   15 = reload
+
 local show_console = true -- displays messages from crow on-screen
 local viewall = true
 
@@ -17,17 +26,13 @@ local toggled = {} -- meta-table to track the state of the grid keys
 local brightness = {} -- meta-table to track the brightness of each grid key
 local counter = {} -- meta-table to hold counters to distinguish between long and short press
 
-local scope = {0,0}
-
 local curr_selected = {1, 1, 1, 1}
 
---local crowii  = crow.ii.crow
 local P = norns.crow.public
-
---local P2 = crowii.public -- does this even work?
 
 local g = grid.connect()
 
+-- experimenting w/ carrying dyn values over even when switching
 local dyncache = {
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, -- dyn1
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, -- dyn2
@@ -35,13 +40,15 @@ local dyncache = {
 
 function init()
   norns.crow.loadscript("asl.lua")
+  curr_selected = {1, 1, 1, 1}
 
   show = {x = 1, y = 1} -- table tracking x,y position
 
   for x = 1,16 do -- for each x-column (16 on a 128-sized grid)...
     toggled[x] = {} -- create an x state tracker,
     brightness[x] = {} -- create an x brightness,
-    counter[x] = {} -- create an x brightness,
+
+    -- counter[x] = {} -- press counter (unused)
 
     for y = 1,8 do
         toggled[x][y] = false
@@ -71,8 +78,9 @@ function init()
 end
 
 function update_grid()
-    offset = 0
+    offset = 0 -- for flickering effect on selected pads
 
+    -- bottom left animations
     for i=1,4 do
         if P.viewing.output[i] ~= nil then
             level_is = math.floor((P.viewing.output[i] / 10) * 16)
@@ -121,30 +129,110 @@ function g.key(x,y,z)
     print(x .. " " .. y .. " " .. z)
 
     if z == 1 then
+        if y == 8 then
+            toggled[x][y] = true
+            brightness[x][y] = 15
+            --g:led(x,y,12)
+            --g:refresh()
+            grid_dirty = true
+        end
         short_press(x,y)
+    elseif z == 0 then
+        if y == 8 then
+            toggled[x][y] = false
+            brightness[x][y] = 0 
+            grid_dirty = true
+            --g:refresh()
+        end
     end
 end
 
+function shuffle()
+    for i=1,4 do
+        set_selected(i,math.random(1,16))
+    end
+end
+
+function sync()
+    for i=1,4 do
+        crow.output[i]()
+    end
+end
+
+function inc_selected(y)
+    n = curr_selected[y] + 1
+    if n > 16 then
+        n = 1
+    end
+    set_selected(y, n)
+end
+
+function dec_selected(y)
+    n = curr_selected[y] - 1
+    if n < 1 then
+        n = 16
+    end
+    set_selected(y, n)
+end
+
+function set_selected(y, x)
+    prev_selected = curr_selected[y]
+    toggled[prev_selected][y] = false -- toggle it on,
+
+    toggled[x][y] = true -- toggle it on,
+    brightness[x][y] = 15 -- set brightness to half.
+
+    curr_selected[y] = x
+
+    crow.send('update_output(' .. x .. ',' .. y .. ')')
+
+    --set_dyn(y, 1, dyncache[1][y])
+    --set_dyn(y, 2, dyncache[2][y])
+end
+
 function short_press(x,y) -- define a short press
+    -- clear top rows
+    --for j=1,4 do
+    --    for i=1,16 do
+    --        toggled[i][j] = false
+    --        brightness[i][j] = 0 -- set brightness to half.
+    --    end
+    --end
+
     if y > 0 and y < 5 then
-        -- clear this row
-        for i=1,16 do
-            toggled[i][y] = false
-            brightness[i][y] = 0 -- set brightness to half.
+        set_selected(y, x)
+    elseif y == 8 then
+        if x == 15 then
+            -- reload script?
+            init()
         end
 
-        toggled[x][y] = true -- toggle it on,
-        brightness[x][y] = 13 -- set brightness to half.
-        prev_selected = curr_selected[y]
-        curr_selected[y] = x
+        if x == 7 then
+            -- restart all ASL
+            shuffle()
+        end
 
-        crow.send('update_output(' .. x .. ',' .. y .. ')')
+        if x == 8 then
+            -- restart all ASL
+            sync()
+        end
 
-        set_dyn(y, 1, dyncache[1][y])
-        set_dyn(y, 2, dyncache[2][y])
+        for j=1,4 do
+            if x == 9 then
+                -- subtract one / wrap
+                dec_selected(j)
+            elseif x == 10 then
+                -- add one / wrap
+                inc_selected(j)
+            end
+        end
+
+        if x == 11 then
+            -- move up / wrap
+        elseif x == 12 then
+            -- move down / wrap
+        end
     end
-
-    -- i dunno who this is 626 696 9226
 
     grid_dirty = true -- flag for redraw
 end
@@ -161,6 +249,7 @@ function set_dyn(i, d, v)
     end
 end
 
+-- unused but probably in future
 function long_press(x,y) -- define a long press
   clock.sleep(0.5) -- a long press waits for a half-second...
   -- then all this stuff happens:
@@ -194,11 +283,7 @@ function grid_redraw_clock()
   end
 end
 
-function out(i,v)
-  scope[i] = v
-end
-
--- draw viewable i/o
+-- draw viewable i/o on screen
 function draw_public_views( vs )
   local function vslide(x, val)
     val = -val*3.6
