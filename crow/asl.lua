@@ -1,12 +1,8 @@
--- 0murda
--- proswell
---
--- asl banks for crow
---
--- lfo / envelope
---
+-- murda asl bank
+
 local total_params = 2
 
+-- public stuff is unused
 
 public{index1 = 1}:range(0, 16)  -- asl index 1
 public{index2 = 2}:range(0, 16)  -- asl index 2
@@ -22,12 +18,25 @@ local caw = {}
 
 function gen_caw()
     caw = {}
+
     for i=0,4 do
-        table.insert(caw, loop{ to( 5*dyn{dyn1=1}, 0.1 ), to(-5*dyn{dyn2=1},0.1*i) })
+        table.insert(caw, loop{
+            to( 5*dyn{dyn1=1}, 0.1 ),
+            to( -2.5*dyn{dyn1=1}, 0.01*math.random(1,5)*i ),
+            to( 2.5*dyn{dyn1=1}, 0.01*math.random(1,5)*i ),
+            to(-5*dyn{dyn2=1},0.1*i)
+          }
+        )
     end
+
     for i=5,8 do
-        table.insert(caw, loop{ to( 5*dyn{dyn1=1}, 0.0 ), to(-5*dyn{dyn2=1},0.1*i) })
+        table.insert(caw, loop{
+            to( 0, 0.01*math.random(1,5)*i ),
+            to( 2.5, 0.02*math.random(1,5)*i )
+        })
     end
+
+    -- slow lfos
     for i=9,16 do
         table.insert(caw, lfo(dyn{dyn2=0.5}*i, dyn{dyn1=5}))
     end
