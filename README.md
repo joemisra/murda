@@ -13,7 +13,7 @@ input 1 and 2 are mapped to dyn1 and dyn2 respectively to be used however
 
 - row 8
   - 7  = shuffle
-  - 8  = sync
+  - 8  = sync (retrigger all loaded asl)
   - 9  = all--
   - 10 = all++
   - 15 = send crow/asl.lua to crow
