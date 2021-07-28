@@ -1,5 +1,3 @@
-![crow-min](https://user-images.githubusercontent.com/326734/127267086-1ff67ac4-ac51-4e42-9bfa-b5a0f6d2c208.jpeg)
-
 ## murda
 
 **asl banks 4 crow**
@@ -21,3 +19,5 @@ input 1 and 2 are mapped to dyn1 and dyn2 respectively to be used however
   - 15 = send crow/asl.lua to crow
   
 column 1-6 of row 7 and 8 have feedback for outputs and inputs
+
+![crow-min](https://user-images.githubusercontent.com/326734/127267086-1ff67ac4-ac51-4e42-9bfa-b5a0f6d2c208.jpeg)
