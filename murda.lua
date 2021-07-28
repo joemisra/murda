@@ -81,10 +81,17 @@ function update_grid()
     offset = 0 -- for flickering effect on selected pads
 
     -- bottom left animations
-    for i=1,4 do
-        if P.viewing.output[i] ~= nil then
-            level_is = math.floor((P.viewing.output[i] / 10) * 16)
-            offset = math.floor((P.viewing.output[i] / 5) * 4)
+    for i=1,6 do
+        -- first 4 are outputs next 2 are inputs
+        if (i < 5 and P.viewing.output[i] ~= nil) or (i > 4 and P.viewing.input[i-4] ~= nil) then
+            if i < 5 then
+                which = P.viewing.output[i]
+            else
+                which = P.viewing.input[i - 4]
+            end
+
+            level_is = math.floor((which / 10) * 16)
+            offset = math.floor((which / 5) * 4)
 
             if(level_is < 0) then
                 y = 8
@@ -147,18 +154,21 @@ function g.key(x,y,z)
     end
 end
 
+-- randomize selections
 function shuffle()
     for i=1,4 do
         set_selected(i,math.random(1,16))
     end
 end
 
+-- retrigger current selections
 function sync()
     for i=1,4 do
         crow.output[i]()
     end
 end
 
+-- increase selected index by one (wrap if over 16)
 function inc_selected(y)
     n = curr_selected[y] + 1
     if n > 16 then
@@ -167,6 +177,7 @@ function inc_selected(y)
     set_selected(y, n)
 end
 
+-- decrease selected index by one (wrap if under 0)
 function dec_selected(y)
     n = curr_selected[y] - 1
     if n < 1 then
@@ -175,6 +186,7 @@ function dec_selected(y)
     set_selected(y, n)
 end
 
+-- change selected asl
 function set_selected(y, x)
     prev_selected = curr_selected[y]
     toggled[prev_selected][y] = false -- toggle it on,
@@ -190,6 +202,7 @@ function set_selected(y, x)
     --set_dyn(y, 2, dyncache[2][y])
 end
 
+-- handle grid buttonz
 function short_press(x,y) -- define a short press
     -- clear top rows
     --for j=1,4 do
@@ -237,6 +250,7 @@ function short_press(x,y) -- define a short press
     grid_dirty = true -- flag for redraw
 end
 
+-- FIXME: unused
 function set_dyn(i, d, v)
     x = curr_selected[i]
 
