@@ -43,7 +43,7 @@ cache = { 0, public.index1, public.index2, public.index3, public.index4 }
 function init()
   gen_caw()
 
-  public.view.framerate(4)
+  --public.view.framerate(4)
 
   for i=1,4 do
       output[i](caw[i])
