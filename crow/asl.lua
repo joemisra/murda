@@ -20,16 +20,16 @@ function gen_caw()
 
     for i=0,4 do
         table.insert(caw, loop{
-            to( 5*dyn{dyn1=1}, 0.01*dyn{dyn2=1}),
-            to( -2.5*dyn{dyn1=1}, 0.005*math.random(1,5)*i*dyn{dyn2=1} ),
-            to( 2.5*dyn{dyn1=1}, 0.002*math.random(1,5)*i*dyn{dyn2=1} ),
+            to( 5*dyn{dyn1=1}, 0.01*dyn{dyn2=1}, 'over'),
+            to( -2.5*dyn{dyn1=1}, 0.005*math.random(1,5)*i*dyn{dyn2=1}, 'under' ),
+            to( 2.5*dyn{dyn1=1}, 0.002*math.random(1,5)*i*dyn{dyn2=1}, 'exp' ),
             to(-5*dyn{dyn2=1},0.01*i)
           }
         )
     end
 
     for i=5,8 do
-        table.insert(caw,loop{ to( 5, 0.02*dyn{dyn1=1}), to( 0, 0.1*i*dyn{dyn2=1})})
+        table.insert(caw,loop{ to( 5, 0.02*dyn{dyn1=1}, 'rebound'), to( 0, 0.1*i*dyn{dyn2=1}, 'log')})
     end
 
     -- slow lfos
@@ -57,25 +57,25 @@ function init()
 
   --input[1].mode('change',4.5,0.01,'rising')
 
-  input[1].stream = function(v)
-      for i=1,4 do
-        if output[i].dyn.dyn1 ~= nil then
-          output[i].dyn.dyn1 = v
-        end
-    end
-  end
+  --input[1].stream = function(v)
+  --    for i=1,4 do
+  --      if output[i].dyn.dyn1 ~= nil then
+  --        output[i].dyn.dyn1 = v
+  --      end
+  --  end
+  --end
 
-  input[1].mode('stream', 0.05)
+  --input[1].mode('stream', 0.05)
 
-  input[2].stream = function(v)
-      for i=1,4 do
-          if output[i].dyn.dyn2 ~= nil then
-            output[i].dyn.dyn2 = v
-      end
-    end
-  end
+  --input[2].stream = function(v)
+  --    for i=1,4 do
+  --        if output[i].dyn.dyn2 ~= nil then
+  --          output[i].dyn.dyn2 = v
+  --    end
+  --  end
+  --end
 
-  input[2].mode('stream', 0.05)
+  --input[2].mode('stream', 0.05)
 
   metro[1].event = update_index
   metro[1].time = 1
