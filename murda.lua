@@ -4,6 +4,9 @@
 --
 -- asl banks 4 crow
 -- grid required
+-- 
+-- e1 sel output 1-4
+-- e2 asl for cur output
 --
 -- row 1-4
 --   select asl 1-16
@@ -54,9 +57,11 @@ function init()
   m:init()
 
   metro[1].event = update_grid
-  metro[1].time  = 0.05
+  metro[1].time  = 0.02
 
-  function P.change() redraw() end
+  function P.change()
+      redraw()
+  end
 
   function P.discovered()
     print'discovered!'
@@ -71,6 +76,16 @@ function init()
   redraw()
 end
 
+function enc(k,d)
+  if k==1 then
+      m.cur = util.clamp(m.cur + d, 1, 4)
+  elseif k==2 then
+      nu = m.rows[m.cur].curr_selected + d
+      m:set_selected(m.cur, util.clamp(nu, 1, 16))
+  elseif k==3 then
+      -- set bank
+  end
+end
 
 -- FIXME: unused
 function set_dyn(i, d, v)
@@ -96,8 +111,12 @@ function long_press(x,y) -- define a long press
   grid_dirty = true -- flag for redraw
 end
 
--- draw viewable i/o on screen
 function draw_public_views( vs )
+end
+
+-- draw viewable i/o on screen
+function draw_public_views_x( vs )
+
   local function vslide(x, val)
     val = -val*3.6
     if math.floor(val+0.5) == 0 then
@@ -116,10 +135,11 @@ function draw_public_views( vs )
   for i=1,4 do
     if vs.output[i] ~= nil then
       vslide(115 + (i-1) * 4, vs.output[i])
-      --wf[i] = vs.output[i]
     end
   end
+
 end
+
 function update_grid()
     offset = 0 -- for flickering effect on selected pads, brightness offset
 
@@ -129,6 +149,7 @@ function update_grid()
         if (i < 5 and P.viewing.output[i] ~= nil) or (i > 4 and P.viewing.input[i-4] ~= nil) then
             if i < 5 then
                 which = P.viewing.output[i]
+                m.rows[i]:update_wf(P.viewing.output[i])
             else
                 which = P.viewing.input[i - 4]
             end
@@ -184,17 +205,67 @@ function grid_redraw_clock()
       grid_dirty = false
     end
 
-    clock.sleep(1/30)
+    clock.sleep(1/15)
   end
 end
 
 function redraw()
     screen.clear()
 
-    if P.viewing ~= nil then
-        draw_public_views(P.viewing)
+
+    screen.level(15)
+
+    --screen.move(1,m.rows[m.cur].wf[1])
+    --screen.aa(1)
+    --screen.line_width(2)
+    --for i=1,128 do
+        --screen.rect(i,m.rows[m.cur].wf[i],1,1)
+        --screen.line(i, m.rows[m.cur].wf[i])
+        --screen.stroke()
+        --screen.move(i, m.rows[m.cur].wf[i])
+        --screen.fill()
+
+        --screen.line(i, m.rows[1].wf[i])
+        --screen.stroke()
+        --screen.move(i, m.rows[1].wf[i])
+    --end
+    
+    barheight = 3
+    barspacing = 6
+
+    for i=1,6 do
+        if i > 4 then
+            extraoffset = 2 -- the inputs
+            barheight = 1
+            barspacing = 6
+        else
+            extraoffset = 0
+        end
+        
+        if i == m.cur then
+            squish = 4 
+        else
+            squish = 8
+        end
+
+        for j=0,1 do
+            screen.level(m.brightness[i][7 + j])
+            ypos = ((i * barspacing) + (j * barheight)) + 10 + extraoffset
+            screen.rect(1 * squish,ypos,128 - (squish * 2),barheight)
+            screen.fill()
+        end
     end
 
+    --if P.viewing ~= nil then
+    --    draw_public_views(P.viewing)
+    --end
+
+    sm=string.format("output[%d] asl %d",m.cur,m.rows[m.cur].curr_selected)
+
+    screen.level(12)
+    screen.move(128-screen.text_extents(sm)-1,8)
+    screen.text(sm)
+    
     screen.update()
 end
 
@@ -214,7 +285,7 @@ function g.key(x,y,z)
     elseif z == 0 then
         if y == 8 then
             m.toggled[x][y] = false
-            brightness[x][y] = 0 
+            m.brightness[x][y] = 0 
             grid_dirty = true
             --g:refresh()
         end

@@ -11,6 +11,8 @@ public{index4 = 4}:range(0, 16)  -- asl index 4
 public{dyn1 = 0.75}:range(0, 1) -- dyn1
 public{dyn2 = 0.5}:range(0, 1)  -- dyn2
 
+public{output1 = 0}:range(-5, 10)  -- dyn2
+
 -- do we maybe want to have this list on the norns side?
 local caw = {}
 
