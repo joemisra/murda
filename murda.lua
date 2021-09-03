@@ -6,7 +6,8 @@
 -- grid required
 -- 
 -- e1 sel output 1-4
--- e2 asl for cur output
+-- e2 change dyn1
+-- e3 change dyn2
 --
 -- row 1-4
 --   select asl 1-16
