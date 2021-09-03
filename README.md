@@ -1,10 +1,10 @@
 ## murda
 
-**asl banks 4 crow**
+**asl banks 4 norns+crow**
 
 **grid required**
 
-./crow/asl.lua = 16 ASL snippets, the script can be tweaked and reloaded (default is an assortment of modulators, but can be any snippet)
+./crow/asl.lua = 16 randomly assembled weird ASL snippets, the script can be tweaked and reloaded while murda is running (row 8 button 15)
 
 input 1 and 2 are mapped to dyn1 and dyn2 respectively to be used however
 
