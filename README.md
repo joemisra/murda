@@ -1,6 +1,6 @@
 ## murda
 
-**asl banks 4 crow**
+**asl banks 4 norns+crow**
 
 **grid required**
 
