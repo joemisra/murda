@@ -7,13 +7,14 @@ public{index1 = 1}:range(0, 16)  -- asl index 1
 public{index2 = 2}:range(0, 16)  -- asl index 2
 public{index3 = 3}:range(0, 16)  -- asl index 3
 public{index4 = 4}:range(0, 16)  -- asl index 4
+public{amp = 5}:range(-5, 10)  -- amp
+public{output1 = 0}:range(-5, 10)  -- output1
+public{dyn3 = 0.01}:range(-5, 5) -- dyn3 
 
+-- used
 public{dyn1 = 5}:range(-5, 10) -- dyn1
 public{dyn2 = 0.5}:range(0.01, 10)  -- dyn2
-public{dyn3 = 0.01}:range(-5, 5)  -- dyn2
-public{amp = 5}:range(-5, 10)  -- dyn2
 
-public{output1 = 0}:range(-5, 10)  -- dyn2
 
 -- do we maybe want to have this list on the norns side?
 local caw = {}
