@@ -1,4 +1,7 @@
 -- murda asl bank
+--
+-- input 1 : sync
+-- input 2 (norns catches this one) : shuffle
 
 local total_params = 2
 
@@ -24,17 +27,17 @@ s = sequins
 shapez = s{'over', 'exp', 'log', 'lin', 'sine', 'under'}
 midz = s{0,1.25,2.5,3.75,4.5,5}
 aslz = s{
-    to( dyn{dyn1=public.dyn1}, 0.01*dyn{dyn2=1}, shapez()),
-    to( -1 * midz(), 0.005*math.random(1,5)*dyn{dyn2=1}, shapez() ),
-    to( midz(), 0.002*math.random(1,5)*dyn{dyn2=1}, shapez() ),
-    to( midz(), 0.02*math.random(1,5)*dyn{dyn2=1}, shapez() ),
-    to( midz(), 0.2*math.random(1,3)*dyn{dyn2=1}, shapez() ),
+    to( dyn{dyn1=public.dyn1}, 0.01*dyn{dyn2=1}:step(1.01):wrap(0.1,2.5), shapez()),
+    to( -1 * midz(), 0.025*math.random(1,5)*dyn{dyn2=1}:step(0.01):wrap(0.1,5.7), shapez() ),
+    to( -1 * midz()*dyn{dyn1=public.dyn1}:wrap(-1,1), 0.022*math.random(1,5)*dyn{dyn2=1}:step(0.98):wrap(0,13.9), shapez() ),
+    to( midz()*dyn{dyn1=public.dyn1}:wrap(-1,1), 0.02*math.random(1,5)*dyn{dyn2=1}:step(0.02):wrap(0,1.3), shapez() ),
+    to( midz()*dyn{dyn1=public.dyn1}:wrap(-1,1), 0.01*math.random(1,3)*dyn{dyn2=1}:step(0.02):wrap(0,2.9), shapez() ),
     to(-1 * dyn{dyn1=public.dyn1},0.01*dyn{dyn2=public.dyn2}, shapez()),
     to(-1 * dyn{dyn1=public.dyn1},0.1*dyn{dyn2=public.dyn2}, shapez()),
-    to( dyn{dyn1=public.dyn1}, 0.02*dyn{dyn2=1}), to( 0, 0.2*dyn{dyn2=1}),
-    to( dyn{dyn1=public.dyn1}, 0.05*dyn{dyn2=public.dyn2}, 'sine'),
-    to(-1 * dyn{dyn1=public.dyn1},0.05*dyn{dyn2=public.dyn2}, 'sine'),
-    to(-1 * dyn{dyn1=public.dyn1},0.05*dyn{dyn2=public.dyn2}, 'exp'),
+    to( dyn{dyn1=public.dyn1}, 0.2*dyn{dyn2=1}), to( 0, 0.2*dyn{dyn2=1}),
+    to( dyn{dyn1=public.dyn1}, 0.5*dyn{dyn2=public.dyn2}:step(0.1):wrap(0.01,10.3), 'sine'),
+    to(-1 * dyn{dyn1=public.dyn1},0.25*dyn{dyn2=public.dyn2}, 'sine'),
+    to(-1 * dyn{dyn1=public.dyn1},0.25*dyn{dyn2=public.dyn2}, 'exp'),
     to(dyn{dyn1=public.dyn1},0.25*dyn{dyn2=public.dyn2}, 'exp')
 }
 
@@ -109,8 +112,7 @@ end
 function update_output(x, y)
   --print("caw is: " .. #caw)
   if y > 0 and y < 5 then
-    if x < #caw then
-        --print("setting " .. y .. " -> " .. x)
+    if x < #caw and caw[x] ~= nil and output[y] ~= nil then
         output[y](caw[x])
     end
   end

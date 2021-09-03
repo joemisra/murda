@@ -77,10 +77,19 @@ function init()
 
     m:shuffle()
     --redraw()
+    
+    crow.input[2].mode("change",5,0.1,"rising")
+    crow.input[2].change = do_shuffle
   end
 
   clock.run(grid_redraw_clock)
   --redraw()
+  
+end
+
+function do_shuffle(s)
+    print('shuf')
+    m:shuffle()
 end
 
 function enc(k,d)
