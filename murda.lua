@@ -25,6 +25,8 @@ local viewall = true
 
 local total_params = 2
 
+local wavs = 0
+
 
 local grid_state = {}
 local grid_dirty = true
@@ -59,31 +61,37 @@ function init()
   metro[1].event = update_grid
   metro[1].time  = 0.02
 
+  metro[2].event = update_screen
+  metro[2].time  = 0.02
+
   function P.change()
-      redraw()
+      --redraw()
   end
 
   function P.discovered()
     print'discovered!'
     if viewall then crow.public.view.all() end -- enable viewing of all CV levels
     metro[1]:start() 
-    redraw()
+    metro[2]:start() 
+
+    m:shuffle()
+    --redraw()
   end
 
-  print(dump(m.toggled))
-
   clock.run(grid_redraw_clock)
-  redraw()
+  --redraw()
 end
 
 function enc(k,d)
   if k==1 then
       m.cur = util.clamp(m.cur + d, 1, 4)
   elseif k==2 then
-      nu = m.rows[m.cur].curr_selected + d
-      m:set_selected(m.cur, util.clamp(nu, 1, 16))
+      --nu = m.rows[m.cur].curr_selected + d
+      --m:set_selected(m.cur, util.clamp(nu, 1, 16))
+      crow.public.dyn1 = crow.public.dyn1 + (d * 0.01)
   elseif k==3 then
       -- set bank
+      crow.public.dyn2 = crow.public.dyn2 + (d * 0.01)
   end
 end
 
@@ -140,6 +148,10 @@ function draw_public_views_x( vs )
 
 end
 
+function update_screen()
+  redraw()
+end
+
 function update_grid()
     offset = 0 -- for flickering effect on selected pads, brightness offset
 
@@ -154,8 +166,13 @@ function update_grid()
                 which = P.viewing.input[i - 4]
             end
 
-            level_is = math.floor((which / 10) * 16)
-            offset = math.floor((which / 5) * 4)
+            if(which < 0) then
+                level_is = math.floor((which / 5.0) * 16)
+            else
+                level_is = math.floor((which / 10.0) * 16)
+            end
+
+            offset = math.floor((which / 5.0) * 4)
 
             if(level_is < 0) then
                 y = 8
@@ -207,11 +224,12 @@ function grid_redraw_clock()
 
     clock.sleep(1/15)
   end
+
+  redraw()
 end
 
 function redraw()
     screen.clear()
-
 
     screen.level(15)
 
@@ -230,28 +248,48 @@ function redraw()
         --screen.move(i, m.rows[1].wf[i])
     --end
     
-    barheight = 3
-    barspacing = 6
+    barheight = 4
+    barspacing = 8
 
     for i=1,6 do
+        ypos = 0
+
         if i > 4 then
-            extraoffset = 2 -- the inputs
-            barheight = 1
-            barspacing = 6
+            extraoffset = 4 -- the inputs
+            barheight = 4
         else
             extraoffset = 0
         end
         
+        ypos = (i * barspacing)
+
         if i == m.cur then
-            squish = 4 
+            squish = 11
+            screen.level(15)
+            screen.rect(1 * squish - 2, ypos + 2, 2, barheight)
+            screen.rect(128 - (1 * squish), ypos + 2, 2, barheight)
+            screen.fill()
         else
-            squish = 8
+            squish = 13
+        end
+
+        if i < 5 then
+            screen.level(12)
+            sm = i
+            screen.move(1, ypos + 6)
+            screen.text(sm)
+
+            sm = m.rows[i].curr_selected
+
+            screen.level(12)
+            screen.move(128-screen.text_extents(sm) - 1, ypos + 6)
+            screen.text(sm)
         end
 
         for j=0,1 do
-            screen.level(m.brightness[i][7 + j])
-            ypos = ((i * barspacing) + (j * barheight)) + 10 + extraoffset
-            screen.rect(1 * squish,ypos,128 - (squish * 2),barheight)
+            screen.level(m.brightness[i][7 + j] - 1)
+            ypos = ypos + (j * barheight)
+            screen.rect(1 * squish, ypos, 128 - (squish * 2),barheight)
             screen.fill()
         end
     end
@@ -260,11 +298,13 @@ function redraw()
     --    draw_public_views(P.viewing)
     --end
 
-    sm=string.format("output[%d] asl %d",m.cur,m.rows[m.cur].curr_selected)
+    if crow.public.dyn1 ~= nil and crow.public.dyn2 ~= nil then
+        sm=string.format("dyn1 %0.2f dyn2 %0.2f", crow.public.dyn1, crow.public.dyn2)
 
-    screen.level(12)
-    screen.move(128-screen.text_extents(sm)-1,8)
-    screen.text(sm)
+        screen.level(12)
+        screen.move(128-screen.text_extents(sm)-1,54)
+        screen.text(sm)
+    end
     
     screen.update()
 end
